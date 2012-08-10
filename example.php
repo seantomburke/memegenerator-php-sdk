@@ -1,7 +1,7 @@
 <?php
 require_once 'memegenerator.class.php';
 
-$meme = new Meme('username','password'); // from http://www.memegenerator.com
+$meme = new MemeGenerator('username','password'); // from http://www.memegenerator.com
 
 if($_GET)
 {
@@ -31,6 +31,7 @@ if($_GET)
 <input type="text" name="bottom" value="<?php echo $_GET['bottom']; ?>" placeholder="Bottom"/><br>
 <input type="text" name="q" value="<?php echo $_GET['q']; ?>" placeholder="Meme"/><br>
 <input type="submit" value="Submit"/><br>
+
 <?php echo $output ?>
 </form>
 </html>

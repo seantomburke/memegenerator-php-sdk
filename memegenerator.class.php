@@ -12,6 +12,7 @@ class MemeGenerator
 {
 	private $username; 	//memegenearator.net username
 	private $password;	//memegenearator.net password
+	public $result;		//array of api call
 	
 	/**
 	 * Constructor that takes in the api token as a parameter
@@ -35,22 +36,28 @@ class MemeGenerator
 	 */
 	public function meme($top, $bottom, $img)
 	{
-		$meme = $this->search($img);
-		
-		$url = 'http://version1.api.memegenerator.net/Instance_Create';
-		
-		echo stripcslashes($top);
-		echo urlencode($top);
-		$fields = array(
-		            'username'=>urlencode($this->username),
-		            'password'=>urlencode($this->password),
-		            'languageCode'=>'en',
-		            'generatorID'=>urlencode($meme['generatorID']),
-		            'imageId'=>urlencode($meme['imageId']),
-		            'text0'=>urlencode(stripcslashes($top)),
-		            'text1'=>urlencode(stripcslashes($bottom))
-		        );
-		return $this->api($url, $fields);
+		if($meme = $this->search($img))
+		{
+			
+			$url = 'http://version1.api.memegenerator.net/Instance_Create';
+	
+			$fields = array(
+			            'username'=>urlencode($this->username),
+			            'password'=>urlencode($this->password),
+			            'languageCode'=>'en',
+			            'generatorID'=>urlencode($meme['generatorID']),
+			            'imageId'=>urlencode($meme['imageId']),
+			            'text0'=>urlencode(stripslashes(stripcslashes($top))),
+			            'text1'=>urlencode(stripslashes(stripcslashes($bottom)))
+			        );
+			$this->result = $this->api($url, $fields);
+			return $this->result;
+		}
+		else
+		{
+			$this->result = array('success' => 'false', 'error' => 'No Image Found');
+			return $this->result;
+		}
 	}
 	
 	/**
@@ -177,18 +184,63 @@ class MemeGenerator
 	 
 	public function search($q)
 	{
+		$clean_q = $this->clean($q);
 		$url = 'http://version1.api.memegenerator.net/Generators_Search';
 		
 		$fields = array(
-					'q'=>urlencode($q),
+					'q'=>urlencode($clean_q),
 		            'pageIndex'=>0,
 		            'pageSize'=>1,
 		        );
 		$result_array = $this->api($url, $fields);
-		$ra = array('http://cdn.memegenerator.net/images/400x/', '.jpg');
-		$result_array['result'][0]['imageId'] = str_ireplace($ra, '', $result_array['result'][0]['imageUrl']);
-		
-		return $result_array['result'][0];
+		if(count($result_array['result']) > 0)
+		{
+			$ra = array('http://cdn.memegenerator.net/images/400x/', '.jpg');
+			$result_array['result'][0]['imageId'] = str_ireplace($ra, '', $result_array['result'][0]['imageUrl']);
+			return $result_array['result'][0];
+		}
+		else
+		{
+			if($q = $this->simplify($q))
+			{
+				return $this->search($q);
+			}
+			else
+			{
+				return 0;
+			}
+		}
+	}
+	
+	
+	
+	/**
+	 * Cleans query for the user
+	 *
+	 * @author Sean Thomas Burke <http://www.seantburke.com>
+	 * @param $q , query to clean
+	 * @return JSON
+	 */
+	private function clean($q)
+	{
+		$items = array('-', '_', '+');
+		$clean_q = str_replace($items, ' ', $q);
+		return $clean_q;
+	}
+	
+	/**
+	 * Shortens the query
+	 *
+	 * @author Sean Thomas Burke <http://www.seantburke.com>
+	 * @param $q , query to clean
+	 * @return JSON
+	 */
+	private function simplify($q)
+	{
+		$clean_q = $this->clean($q);
+		$words = explode(' ', $clean_q);
+		array_pop($words);
+		return implode(' ', $words);
 	}
 }
 
