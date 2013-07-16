@@ -1,5 +1,6 @@
 memegenerator-php-sdk
 =====================
+[![endorse](https://api.coderwall.com/hawaiianchimp/endorsecount.png)](https://coderwall.com/hawaiianchimp)
 
 PHP SDK for the MemeGenerator.net API
 
